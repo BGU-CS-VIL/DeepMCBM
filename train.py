@@ -28,10 +28,7 @@ def main(args):
 if __name__ == "__main__":
     parser = ARGS.get_argparser()
     args = parser.parse_args()
-    # for a dry run uncomment this
-    args.STN_total_epochs = 3
-    args.AE_total_epochs = 3 
-    args.TG = "Homo"
-    args.load_Affine = True
-    args.STN_ckpt = "tennis_AL-2128_best.ckpt"
+    # # for a dry run uncomment this
+    # args.STN_total_epochs = 3
+    # args.AE_total_epochs = 3 
     main(args)
