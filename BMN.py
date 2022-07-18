@@ -65,8 +65,7 @@ class BMN(nn.Module):
                                                theta_dict=transform, 
                                                shape=warped_image.shape,
                                                device=device,
-                                               global_transform=self.STN.global_transform, 
-                                               T=self.STN.T)[..., :x.shape[-2], :x.shape[-1]]
+                                               global_transform=self.STN.global_transform)[..., :x.shape[-2], :x.shape[-1]]
                 moments_list.append(warped_moment)
 
             x = torch.cat((x, *moments_list), dim=1)

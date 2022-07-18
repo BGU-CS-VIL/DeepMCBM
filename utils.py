@@ -8,7 +8,7 @@ import pandas as pd
 import torch.nn.functional as F
 import numpy.ma as ma
 from typing import List
-from transforms import affine_warp, homography_warp, cpab_warp
+from transforms import affine_warp, homography_warp
 from PIL import Image 
 from sklearn import metrics
 from natsort import natsorted
@@ -147,31 +147,25 @@ def log_image(image, title, run, neptun_dir):
 #     moment[:] = mu.moment
 
 
-def warp_img(img, theta_dict, shape, T=None):
+def warp_img(img, theta_dict, shape):
 
     if "affine" in theta_dict.keys():
         grid = F.affine_grid(theta_dict["affine"], shape)
         img = F.grid_sample(img, grid)
-    if "cpab" in theta_dict.keys():
-        img = T.transform_data(
-            img, theta_dict["cpab"], outsize=(img.shape[2], img.shape[3]))
     return img
 
 
-def warp_inv(img, theta_dict, shape,device,global_transform=None, T=None):
+def warp_inv(img, theta_dict, shape,device,global_transform=None):
     """ Warps image by inverse transformation theta_dict
     Args:
         img: Image to warp
         theta_dict: Dictionary of theta values
         shape: Shape of the image
-        T: CPAB basis class
     Returns:
         Warped image
     """
     N, C , H, W = shape
     grid = None
-    if "cpab" in theta_dict.keys():
-        _, grid = cpab_warp(T, theta_dict["cpab"], shape, grid=grid, inverse=True,device=device)
     if "homography" in theta_dict.keys():
         _, grid = homography_warp(theta_dict["homography"], shape, exp=False, grid=grid, inverse=True,device=device)
     if "affine" in theta_dict.keys():
@@ -311,14 +305,14 @@ def video_to_frames(pathIn, pathOut):
     return count
 
 
-def panorama_fg(fg, pad, transform, T=None):
+def panorama_fg(fg, pad, transform):
     fg = F.pad(fg,
                (0,           # left
                 pad[1],      # right
                 0,           # top
                 pad[0]       # bottom
                 ))
-    fg = warp_img(fg, transform, fg.shape, T=T)
+    fg = warp_img(fg, transform, fg.shape)
     return fg
 
 

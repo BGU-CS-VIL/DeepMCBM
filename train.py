@@ -28,6 +28,7 @@ if __name__ == "__main__":
     parser = ARGS.get_argparser()
     args = parser.parse_args()
     # for a dry run uncomment this
-    args.STN_total_epochs = 10
-    args.AE_total_epochs = 10 
+    args.STN_total_epochs = 3
+    args.AE_total_epochs = 3 
+    # args.TG = "Homo"
     main(args)

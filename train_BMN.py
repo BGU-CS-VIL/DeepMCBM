@@ -101,13 +101,11 @@ def main(args):
     # load STN
     if args.TG == 'Affine':
         stn = STN.STN_block(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
-                        use_homography=args.homography, use_cpab=args.cpab,
-                        zero_boundary=args.cpab_zero_boundary).to(device)
+                        use_homography=args.homography).to(device)
     
     if args.TG == 'Homo':
         stn = STN_Homo.STN_Homo(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
-                use_homography=args.homography, use_cpab=args.cpab,
-                zero_boundary=args.cpab_zero_boundary).to(device)
+                use_homography=args.homography).to(device)
                     
     checkpoint_path = os.path.join(args.STN_ckpt_dir, args.STN_ckpt)
     checkpoint = torch.load(checkpoint_path)

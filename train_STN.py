@@ -98,13 +98,11 @@ def main(args):
     ## MODEL
     if args.TG == 'Affine':
         stn = STN.STN_block(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
-                            use_homography=args.homography, use_cpab=args.cpab,
-                            zero_boundary=args.cpab_zero_boundary).to(device)
+                            use_homography=args.homography).to(device)
     
     if args.TG == 'Homo':
         stn = STN_Homo.STN_Homo(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
-                        use_homography=args.homography, use_cpab=args.cpab,
-                        zero_boundary=args.cpab_zero_boundary).to(device)
+                        use_homography=args.homography).to(device)
         if args.load_Affine:
             stn.Load_BackBone_and_AffineHead(args)
 
@@ -148,7 +146,6 @@ def main(args):
         if epoch_loss < min_loss:
             min_loss = epoch_loss
             utils.save_model(ckpt_path+"_best.ckpt",stn,optimizer,scheduler)
-        # stn.global_transform_zero_mean(dataloader)
     # End of training
     utils.save_model(ckpt_path+"_last.ckpt",stn,optimizer,scheduler)
     run.stop()
@@ -157,8 +154,4 @@ def main(args):
 if __name__ == "__main__":
     parser = ARGS.get_argparser()
     args = parser.parse_args()
-    # args.log_interval = 10
-    # args.STN_lr_step = 100
-    # args.memory = 0.9
-    # args.STN_lr = 0.001
     main(args)

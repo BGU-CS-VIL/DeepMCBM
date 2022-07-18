@@ -122,29 +122,3 @@ def homography_warp(theta, shape, exp=True, grid=None, return_homogenous_grid=Fa
 
     return theta, grid_t
 
-
-def cpab_warp(T, theta, shape,device='cpu', grid=None, inverse=False) -> torch.Tensor:
-    """
-    Args:
-        T: cpab transformer class
-        theta: (N, theta_dim)
-        shape: (N, C, H, W)
-        grid: (N, 2, H*W)
-        inverse: bool
-    Returns:
-        grid: transofrmed grid (N, 2, H*W)
-
-    """
-
-    N, C, H, W = shape
-    if inverse:
-        theta = -theta
-    if grid is None:
-        # cpab does not work with homogenous coordinates
-        grid = get_grids(shape, homogenous=False,device=device)
-    else:
-        assert grid.shape[1] == 2, f"grid should be in inhomogeneous coordinates, got {grid.shape}"
-
-    grid_t = T.transform_grid(grid, theta)  # (N, 2, H*W): note theta
-
-    return theta, grid_t

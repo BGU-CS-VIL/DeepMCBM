@@ -5,7 +5,6 @@ from torch import nn
 import torch.nn.functional as F
 from transforms import *
 import math
-# from libcpab import Cpab
 from utils import freeze_layers, unfreeze_layers
 import STN 
 import os 
@@ -16,11 +15,9 @@ warnings.filterwarnings("ignore")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class STN_Homo(STN.STN_block):
-    def __init__(self, mask_shape, pad, t, use_homography=False, use_cpab=False,
-                 tess_size=[2, 2], pretrained=False, zero_boundary=False, device="cuda"):
+    def __init__(self, mask_shape, pad, t, use_homography=False,pretrained=False, device="cuda"):
 
-        super().__init__(mask_shape, pad, t, use_homography, use_cpab,
-                 tess_size, pretrained, zero_boundary, device)
+        super().__init__(mask_shape, pad, t, use_homography,pretrained, device)
 
         self.homography_theta_dim = 8
         self.homography_theta_regressor = nn.Sequential(
@@ -67,9 +64,9 @@ class STN_Homo(STN.STN_block):
         return warped_image, warped_mask, transform
 
     def Load_BackBone_and_AffineHead(self,args):
-            stn_a = STN.STN_block(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
-            use_homography=args.homography, use_cpab=args.cpab,
-            zero_boundary=args.cpab_zero_boundary).to(device)
+            stn_a = STN.STN_block(args.mask_shape, args.pad, args.t, 
+                                  pretrained=args.pretrain_resnet,
+                                  use_homography=args.homography).to(device)
             checkpoint_path = os.path.join(args.STN_ckpt_dir, args.STN_ckpt)
             checkpoint = torch.load(checkpoint_path)
             stn_a.load_state_dict(checkpoint['state_dict'])
