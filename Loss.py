@@ -15,15 +15,14 @@ class Alignment_Loss(nn.Module):
         self.mu_batch = nn.Parameter(torch.zeros_like(self.image_acc_sum,device=self.image_acc_sum.device),requires_grad=False)
 
     def forward(self,image,mask):
-        # with torch.no_grad():
-            # self.image_acc_sum.mul_(self.memory).add_(image.sum(dim=0).mul_((1-self.memory)))
-            # self.mask_acc_sum.mul_(self.memory).add_(mask.sum(dim=0).mul_((1-self.memory)))
-            # utils.weighted_average(self.mu,
-            #                     self.image_acc_sum,
-            #                     self.mask_acc_sum,
-            #                     self.zero_sensitivity)
-        # self.update_mu(image.sum(dim=0),mask.sum(dim=0))
-    
+        with torch.no_grad():
+            self.image_acc_sum+=image.sum(dim=0)
+            self.mask_acc_sum+=mask.sum(dim=0)
+            utils.weighted_average(self.mu,
+                                self.image_acc_sum,
+                                self.mask_acc_sum,
+                                self.zero_sensitivity)
+         
         diff_from_mu = self.huber(image,self.mu)*mask   # batch_size x C x H x W 
         loss = diff_from_mu.sum(dim = (1,2,3))          # batch size x 1
         mask_sum = mask.sum(dim = (1,2,3))              # batch size x 1
@@ -32,10 +31,8 @@ class Alignment_Loss(nn.Module):
         return loss
 
     def step(self):
-        pass
-        # self.image_acc_sum.mul_(self.memory)
-        # self.mask_acc_sum.mul_(self.memory)
-        # self.mu.fill_(0.0)
+        self.image_acc_sum.mul_(self.memory)
+        self.mask_acc_sum.mul_(self.memory)
 
     def init_loss(self,data_loader,model):
         with torch.no_grad():
@@ -50,12 +47,3 @@ class Alignment_Loss(nn.Module):
                         self.mask_acc_sum,
                         self.zero_sensitivity)
                     
-
-    def update_mu(self,image_batch_sum,mask_batch_sum):
-        with torch.no_grad():
-            utils.weighted_average(self.mu_batch,
-                            image_batch_sum,
-                            mask_batch_sum,
-                            self.zero_sensitivity)
-            # mu <- mu*memory + mu_batch(1-memory)
-            self.mu.mul_(self.memory).add_(self.mu_batch.mul_(1-self.memory))

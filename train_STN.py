@@ -15,7 +15,6 @@ from image_dataset import ImageDataset
 import args as ARGS
 
 def set_optimizer_and_scheduler(stn,args,run):
-        ## OPTIMIZER and SCHEDULER 
     if args.STN_optimizer == 'SGD':
         optimizer = torch.optim.SGD(stn.parameters(), 
                                     lr = args.STN_lr,
@@ -63,11 +62,11 @@ def log_frame_alignment(stn,image,title,epoch,run):
     
 
 def main(args):
-    ## PARAMS and SETTINGS 
+    ## Params and Settings 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
-    ## LOGGER
+    ## Neptune.ai Logger
     NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
     run = neptune.init(project='vil/alignment-STN',
                     api_token=NEPTUNE_API_TOKEN,
@@ -79,7 +78,7 @@ def main(args):
     ckpt_path = os.path.join(args.STN_ckpt_dir,ckpt_name)
 
 
-    ## DATA 
+    ## Data 
     image_path = os.path.join(args.parent_dir, args.dir, "frames")
     print(f"working on dataset in:{image_path}")
     transform = Compose([
@@ -95,18 +94,17 @@ def main(args):
                             num_workers=4)
     run['config/dataset/path'] = os.path.join(args.parent_dir, args.dir)
 
-    ## MODEL
+    ## Model
     if args.TG == 'Affine':
         stn = STN.STN_block(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
                             use_homography=args.homography).to(device)
-    
     if args.TG == 'Homo':
         stn = STN_Homo.STN_Homo(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
                         use_homography=args.homography).to(device)
         if args.load_Affine:
             stn.Load_BackBone_and_AffineHead(args)
-
-    ## LOSS
+            
+    ## Loss
     panorama_shape = (args.channels, args.mask_shape[0]+args.pad[0], args.mask_shape[1]+args.pad[1])
     alignment_loss = Loss.Alignment_Loss(panorama_shape,
                                         args.memory, 
@@ -115,18 +113,18 @@ def main(args):
     utils.log_image(alignment_loss.mu, "init alignment",
                     run, 'training/alignment_image')
     
-    ## OPTIMIZER and SCHEDULER
+    ## Optimizer and Scheduler
     optimizer,scheduler = set_optimizer_and_scheduler(stn,args,run) 
 
     
-    ## TRAIN
-    # init 
+    ## Training 
+    # Init 
     size = len(dataloader.dataset)
     first_frame = dataloader.dataset.__getitem__(0)[None,:,:,:].to(device)
     min_loss = float('inf')
     stn.train()
 
-    # training loop 
+    # Training Loop 
     for epoch in range(args.STN_total_epochs):
         running_loss = 0 
         for batch in dataloader:
@@ -134,19 +132,18 @@ def main(args):
             warped_image, warped_mask, transform = stn(batch.to(device))
             loss = alignment_loss(warped_image, warped_mask)
             loss.backward()
-            alignment_loss.update_mu(warped_image.sum(dim=0),warped_mask.sum(dim=0))
-
             optimizer.step()
             running_loss+=loss.item()
-        # End of Epoch Routine 
+        # End of Epoch
         epoch_loss = running_loss/size
         log(run,epoch,epoch_loss,scheduler.get_last_lr(),alignment_loss.mu,first_frame,stn,args.log_interval)
         scheduler.step()
-        # alignment_loss.step() -- moved to "every batch scheme" 
+        alignment_loss.step()
         if epoch_loss < min_loss:
             min_loss = epoch_loss
             utils.save_model(ckpt_path+"_best.ckpt",stn,optimizer,scheduler)
-    # End of training
+
+    # End of Training
     utils.save_model(ckpt_path+"_last.ckpt",stn,optimizer,scheduler)
     run.stop()
     return ckpt_name

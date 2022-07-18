@@ -9,16 +9,16 @@ def main(args):
         print("\n### TRAINING STN START ###\n")
         ckpt_name = train_STN.main(args)
         args.STN_ckpt = ckpt_name+"_best.ckpt"
-        print("\n### TRAINING STN DONE ###")
         print('### checkpoint saved:',os.path.join(args.STN_ckpt_dir,args.STN_ckpt))
+        print("\n### TRAINING STN DONE ###")
 
 
     if args.train_BMN:
         print("\n### TRAINING AE START ###\n")
         ckpt_name = train_BMN.main(args)
         args.BMN_ckpt = ckpt_name+"_best.ckpt"
-        print("\n### TRAINING AE DONE ###")
         print('### checkpoint saved:',os.path.join(args.BMN_ckpt_dir,args.BMN_ckpt))
+        print("\n### TRAINING AE DONE ###")
 
     print("### PREDICT AND EVALUATE MODEL ###")
     predict_BMN.main(args)
