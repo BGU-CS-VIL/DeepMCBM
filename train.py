@@ -4,7 +4,6 @@ import train_BMN
 import predict_BMN
 import args as ARGS
 
-# Ver_0
 def main(args):
     if args.train_STN:
         print("\n### TRAINING STN START ###\n")
@@ -28,13 +27,7 @@ def main(args):
 if __name__ == "__main__":
     parser = ARGS.get_argparser()
     args = parser.parse_args()
-    # args.tags = ["dry run","larger Homo reg"]
-    # args.STN_total_epochs = 10
-    # args.AE_total_epochs = 10
-    # args.TG = "Homo"
-    # args.load_Affine = True
-    # args.BMN_ckpt ="horsejump-high_BAC-1048_last.ckpt"
-    # args.train_STN = False
-    # args.train_BMN = False
-    # args.pad = [1500,1500]
+    # for a dry run uncomment this
+    args.STN_total_epochs = 10
+    args.AE_total_epochs = 10 
     main(args)

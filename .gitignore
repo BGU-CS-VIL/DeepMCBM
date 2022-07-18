@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# logger files 
+.neptune/
+
+# images 
+*.png

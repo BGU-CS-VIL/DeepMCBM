@@ -11,7 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 from autoencoder import AutoEncoder
-from ConvAE import ConvAE
+# from ConvAE import ConvAE
 import utils
 from utils import update_special_args
 from image_dataset import ImageDataset

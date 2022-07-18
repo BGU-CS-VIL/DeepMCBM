@@ -5,11 +5,8 @@ from torch import nn
 import torch.nn.functional as F
 from transforms import *
 import math
-from libcpab import Cpab
 from utils import freeze_layers, unfreeze_layers
 from torch.utils.data import DataLoader
-
-
 warnings.filterwarnings("ignore")
 
 
@@ -26,7 +23,7 @@ class STN_block(nn.Module):
         affine_theta_dim = 6
         self.flatten = nn.Flatten()
         self.backone = resnet18(pretrained=pretrained)
-        self.out_shape = self.back_bone_output_size()
+        self.out_shape = self.Backbone_output_size()
         self.linear_in_features = math.prod(self.out_shape)
         self.hidden_size = 32
 
@@ -49,12 +46,12 @@ class STN_block(nn.Module):
                 nn.ReLU(True),
                 nn.Linear(self.hidden_size, self.homography_theta_dim),
             )
-        # cpab
-        if self.use_cpab:
-            self.T = Cpab(tess_size=tess_size, backend="pytorch",
-                          device="gpu", zero_boundary=zero_boundary)
-            self.cpab_theta_dim = self.T.get_theta_dim()
-            print("CPAB: theta shape: ", self.cpab_theta_dim)
+        # # cpab
+        # if self.use_cpab:
+        #     self.T = Cpab(tess_size=tess_size, backend="pytorch",
+        #                   device="gpu", zero_boundary=zero_boundary)
+        #     self.cpab_theta_dim = self.T.get_theta_dim()
+        #     print("CPAB: theta shape: ", self.cpab_theta_dim)
 
             self.cpab_theta_regressor = nn.Sequential(
 
@@ -141,7 +138,7 @@ class STN_block(nn.Module):
 
         return image,mask
 
-    def back_bone_output_size(self):
+    def Backbone_output_size(self):
         x = torch.rand((1, 3, *self.mask_shape))
         x = self.backone(x)
         return x.shape

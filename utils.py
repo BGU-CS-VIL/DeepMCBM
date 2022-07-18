@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import os
 import pandas as pd
-import Moment
+# import Moment
 import torch.nn.functional as F
 import numpy.ma as ma
 from typing import List
@@ -139,12 +139,12 @@ def log_image(image, title, run, neptun_dir):
     # plt.close()
 
 
-def acc_moment(moment, dataloader, model, input_shape, p, mean=None):
-    mu = Moment.Moment(input_shape=input_shape, p=p, mean=mean).cuda()
-    for image in dataloader:
-        image_out, mask_out, transform = model(image.cuda())
-        mu(image_out, mask_out)
-    moment[:] = mu.moment
+# def acc_moment(moment, dataloader, model, input_shape, p, mean=None):
+#     mu = Moment.Moment(input_shape=input_shape, p=p, mean=mean).cuda()
+#     for image in dataloader:
+#         image_out, mask_out, transform = model(image.cuda())
+#         mu(image_out, mask_out)
+#     moment[:] = mu.moment
 
 
 def warp_img(img, theta_dict, shape, T=None):
