@@ -63,7 +63,7 @@ class STN_Homo(STN.STN_block):
         
         return warped_image, warped_mask, transform
 
-    def Load_BackBone_and_AffineHead(self,args):
+    def Load_Backbone_and_AffineHead(self,args):
             stn_a = STN.STN_block(args.mask_shape, args.pad, args.t, 
                                   pretrained=args.pretrain_resnet,
                                   use_homography=args.homography).to(device)

@@ -18,10 +18,11 @@ def main(args):
         ckpt_name = train_BMN.main(args)
         args.BMN_ckpt = ckpt_name+"_best.ckpt"
         print('### checkpoint saved:',os.path.join(args.BMN_ckpt_dir,args.BMN_ckpt))
-        print("\n### TRAINING AE DONE ###")
+        print("### TRAINING AE DONE ###")
 
-    print("### PREDICT AND EVALUATE MODEL ###")
+    print("\n### PREDICT AND EVALUATE MODEL START ###")
     predict_BMN.main(args)
+    print("\n### PREDICT AND EVALUATE MODEL END ###")
 
 
 if __name__ == "__main__":
@@ -30,5 +31,7 @@ if __name__ == "__main__":
     # for a dry run uncomment this
     args.STN_total_epochs = 3
     args.AE_total_epochs = 3 
-    # args.TG = "Homo"
+    args.TG = "Homo"
+    args.load_Affine = True
+    args.STN_ckpt = "tennis_AL-2128_best.ckpt"
     main(args)

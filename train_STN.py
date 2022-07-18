@@ -102,8 +102,8 @@ def main(args):
         stn = STN_Homo.STN_Homo(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
                         use_homography=args.homography).to(device)
         if args.load_Affine:
-            stn.Load_BackBone_and_AffineHead(args)
-            
+            stn.Load_Backbone_and_AffineHead(args)
+
     ## Loss
     panorama_shape = (args.channels, args.mask_shape[0]+args.pad[0], args.mask_shape[1]+args.pad[1])
     alignment_loss = Loss.Alignment_Loss(panorama_shape,
