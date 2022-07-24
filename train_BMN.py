@@ -37,9 +37,9 @@ def set_optimizer_and_scheduler(bmn,args,run):
     return optimizer,scheduler
 
 def log(run,epoch,epoch_loss,lr,sample_image,bmn,log_interval):
-    run["training/loss"].log(epoch_loss)
-    run["training/epoch"].log(epoch)
-    run["training/lr"].log(lr)
+    run["training/CAE/loss"].log(epoch_loss)
+    run["training/CAE/epoch"].log(epoch)
+    run["training/CAE/lr"].log(lr)
     print("epoch:",epoch)
     print("loss:",epoch_loss)
     print("lr :",lr)
@@ -54,23 +54,26 @@ def log_frame_reconstruction(bmn,image,epoch,run):
     utils.log_image(reconstruction, 
                     f"epoch {epoch}",
                     run, 
-                    f'training/reconstruction')
+                    f'training/CAE/reconstruction')
     utils.log_image(AE_output, "epoch = " +
-                            str(epoch), run, 'training/AE_output')
+                            str(epoch), run, 'training/CAE/AE_output')
     utils.log_image(warped_mean, "epoch = " +
-                            str(epoch), run, 'training/STN_output')
+                            str(epoch), run, 'training/CAE/STN_output')
 
-def main(args):
+def main(args,**kwargs):
     ## PARAMS and SETTINGS 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"using {device}")
 
     ## LOGGER
-    NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
-    run = neptune.init(project='vil/background-AE',
-                    api_token=NEPTUNE_API_TOKEN,
-                    source_files=['*.py'],
-                    tags=args.tags)
+    if 'run' in kwargs.keys():
+        run = kwargs['run']
+    else:
+        # NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
+        run = neptune.init(project=args.neptune_project,
+                        api_token=args.neptune_api_token,
+                        source_files=['*.py'],
+                        tags=args.tags)
     
     # args = update_special_args(args, args.special_args_path)
     run['config/params'] = vars(args)
@@ -95,7 +98,7 @@ def main(args):
         drop_last=False)
 
     first_frame = train_loader.dataset.__getitem__(0)[None,:,:,:].to(device)
-    utils.log_image(first_frame, "first_frame", run, 'training/first_frame')
+    utils.log_image(first_frame, "first_frame", run, 'training/CAE/first_frame')
 
     ## MODEL
     # load STN
@@ -125,7 +128,7 @@ def main(args):
               cond_decoder=args.cond_decoder).to(device)
     # init BMN moments 
     bmn.init_moments(train_loader,args.trim_percentage)
-    utils.log_image(bmn.moments[0],"robust mean",run,"training/robust_mean")
+    utils.log_image(bmn.moments[0],"robust mean",run,"training/CAE/robust_mean")
 
     ## LOSS
     if args.AE_loss_type == 'MSE':
@@ -163,11 +166,11 @@ def main(args):
         scheduler.step()
         if epoch_loss < min_loss:
             min_loss = epoch_loss
-            utils.save_model(ckpt_path+"_best.ckpt",bmn,optimizer,scheduler)
+            utils.save_model(ckpt_path+"_BMN_best.ckpt",bmn,optimizer,scheduler)
 
     # End of training
-    utils.save_model(ckpt_path+"_last.ckpt",bmn,optimizer,scheduler)
-    run.stop()
+    utils.save_model(ckpt_path+"_BMN_last.ckpt",bmn,optimizer,scheduler)
+    # run.stop()
     return ckpt_name
 
 if __name__ == "__main__":

@@ -1,8 +1,12 @@
 import argparse
+NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
+NEPTUNE_PROJECT = "vil/DeepMCBM"
 
 def get_argparser():
     parser = argparse.ArgumentParser()
     # logging args 
+    parser.add_argument("--neptune_api_token", type = str, default=NEPTUNE_API_TOKEN)
+    parser.add_argument("--neptune_project", type = str ,default=NEPTUNE_PROJECT)
     parser.add_argument("--tags", nargs ='+' ,type=str, default=["debug"])
     parser.add_argument("--log_interval", type=int, default=200)
     parser.add_argument("--special_args_path", type=str, default="MCBM/special_args.csv")
@@ -60,13 +64,6 @@ def get_argparser():
     parser.set_defaults(homography=False)
     # for forward pass
     parser.add_argument("--train_homography_epoch", type=int, default=3000)
-
-    # STN CPAB args
-    parser.add_argument('--cpab', dest='cpab', action='store_true')
-    parser.set_defaults(cpab=False)
-    parser.add_argument('--cpab_zero_boundary', dest='cpab_zero_boundary', action='store_true')
-    parser.set_defaults(zero_boundary=False)
-    parser.add_argument("--train_cpab_epoch", type=int, default=4500)
 
     # STN ckpt args
     parser.add_argument("--STN_ckpt_dir", type=str, default="/vildata/guy/STN_checkpoints")

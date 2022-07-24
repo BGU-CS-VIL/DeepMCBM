@@ -66,7 +66,7 @@ def calc_metrics_BMN(metrics_path,mse_path,gt_path,args, tag="", run=None):
         run['method'] = tag
 
 
-def main(args):
+def main(args,**kwargs):
 
     NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI1ODA1ODY0NS1iMTUwLTQzNjMtYTEwMi02NTU3ZmI5YzIwYzQifQ=="
 
@@ -124,14 +124,18 @@ def main(args):
     gt_path = os.path.join(args.parent_dir,args.dir,"GT")
     
     ##### seperate runs for Neptune
-    run1 = neptune.init(
-    project="vil/BMN-metrics",
-    api_token=NEPTUNE_API_TOKEN,
-    source_files=['*.py'],
-    tags=args.tags)
+    ## LOGGER
+    if 'run' in kwargs.keys():
+        run = kwargs['run']
+    else:
+        # NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
+        run = neptune.init(project=args.neptune_project,
+                        api_token=args.neptune_api_token,
+                        source_files=['*.py'],
+                        tags=args.tags)
     
     args.method = "AE"
-    run1['config/params'] = vars(args)
+    run['config/params'] = vars(args)
        
     # like other methods
     gt_path = os.path.join(args.parent_dir, args.dir, "GT")
@@ -143,25 +147,25 @@ def main(args):
     
     calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
                         gt_path=gt_path, mse_path=mse_path, args=args, method=args.method,
-                        run=run1,  overwrite=True)
-    run1.stop()
+                        run=run,  overwrite=True)
+    # run.stop()
     
-    ##### seperate runs for Neptune
-    run2 = neptune.init(
-    project="vil/BMN-metrics",
-    api_token=NEPTUNE_API_TOKEN,
-    source_files=['*.py'],
-    tags=args.tags)
-    args.method = "STN"
-    run2['config/params'] = vars(args)
+    # ##### seperate runs for Neptune
+    # run2 = neptune.init(
+    #                     project=args.neptune_project,
+    #                     api_token=args.neptune_api_token,
+    #                     source_files=['*.py'],
+    #                     tags=args.tags)
+    # args.method = "STN"
+    # run2['config/params'] = vars(args)
 
-    bg_path = bg_STN_est_path
-    mse_path = os.path.join(exp_path, "MSE_STNv2")
-    #calc_metrics_BMN(metrics_path, mse_STN_path, gt_path, args, tag="STN", run=run2)
-    calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
-                        gt_path=gt_path, mse_path=mse_path, args=args, method=args.method,
-                        run=run2,  overwrite=True)
-    run2.stop()
+    # bg_path = bg_STN_est_path
+    # mse_path = os.path.join(exp_path, "MSE_STNv2")
+    # #calc_metrics_BMN(metrics_path, mse_STN_path, gt_path, args, tag="STN", run=run2)
+    # calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
+    #                     gt_path=gt_path, mse_path=mse_path, args=args, method=args.method,
+    #                     run=run2,  overwrite=True)
+    # run2.stop()
 
 
 if __name__ == "__main__":

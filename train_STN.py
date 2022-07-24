@@ -39,15 +39,15 @@ def set_optimizer_and_scheduler(stn,args,run):
 
 
 def log(run,epoch,epoch_loss,lr,alignment_image,first_frame,stn,log_interval):
-    run["training/loss"].log(epoch_loss)
-    run["training/epoch"].log(epoch)
-    run["training/lr"].log(lr)
+    run["training/STN/loss"].log(epoch_loss)
+    run["training/STN/epoch"].log(epoch)
+    run["training/STN/lr"].log(lr)
     print("epoch:",epoch)
     print("loss:",epoch_loss)
     print("lr :",lr)
     if epoch%log_interval == 0:
         utils.log_image(alignment_image, f"epoch {epoch}",
-                run, 'training/alignment_image')
+                run, 'training/STN/alignment_image')
         log_frame_alignment(stn,first_frame,"first_frame_warped",epoch,run)
     
 def log_frame_alignment(stn,image,title,epoch,run):
@@ -58,20 +58,23 @@ def log_frame_alignment(stn,image,title,epoch,run):
     utils.log_image(image_out, 
                     f"epoch {epoch}",
                     run, 
-                    f'training/{title}')
+                    f'training/STN/{title}')
     
 
-def main(args):
+def main(args,**kwargs):
     ## Params and Settings 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
-    ## Neptune.ai Logger
-    NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
-    run = neptune.init(project='vil/alignment-STN',
-                    api_token=NEPTUNE_API_TOKEN,
-                    source_files=['*.py'],
-                    tags=args.tags)
+    ## LOGGER
+    if 'run' in kwargs.keys():
+        run = kwargs['run']
+    else:
+        # NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
+        run = neptune.init(project=args.neptune_project,
+                        api_token=args.neptune_api_token,
+                        source_files=['*.py'],
+                        tags=args.tags)
     
     run['config/params'] = vars(args)
     ckpt_name = args.dir+"_"+utils.fetch_Neptune_run_id(run)
@@ -111,7 +114,7 @@ def main(args):
                                         SmoothL1Loss_beta=args.beta).to(device)
     alignment_loss.init_loss(dataloader,stn)
     utils.log_image(alignment_loss.mu, "init alignment",
-                    run, 'training/alignment_image')
+                    run, 'training/STN/alignment_image')
     
     ## Optimizer and Scheduler
     optimizer,scheduler = set_optimizer_and_scheduler(stn,args,run) 
@@ -141,11 +144,11 @@ def main(args):
         alignment_loss.step()
         if epoch_loss < min_loss:
             min_loss = epoch_loss
-            utils.save_model(ckpt_path+"_best.ckpt",stn,optimizer,scheduler)
+            utils.save_model(ckpt_path+"_STN_best.ckpt",stn,optimizer,scheduler)
 
     # End of Training
-    utils.save_model(ckpt_path+"_last.ckpt",stn,optimizer,scheduler)
-    run.stop()
+    utils.save_model(ckpt_path+"_STN_last.ckpt",stn,optimizer,scheduler)
+    # run.stop()
     return ckpt_name
     
 if __name__ == "__main__":
