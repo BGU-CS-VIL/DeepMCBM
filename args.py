@@ -1,6 +1,9 @@
 import argparse
 NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
 NEPTUNE_PROJECT = "vil/DeepMCBM"
+DATA_DIR = "./input"
+OUTPUT_DIR = "./output"
+
 
 def get_argparser():
     parser = argparse.ArgumentParser()
@@ -9,10 +12,9 @@ def get_argparser():
     parser.add_argument("--neptune_project", type = str ,default=NEPTUNE_PROJECT)
     parser.add_argument("--tags", nargs ='+' ,type=str, default=["debug"])
     parser.add_argument("--log_interval", type=int, default=200)
-    parser.add_argument("--special_args_path", type=str, default="MCBM/special_args.csv")
     
     # dataset params
-    parser.add_argument("--parent_dir", type=str, default="/vildata/guy/Datasets")
+    parser.add_argument("--parent_dir", type=str, default=DATA_DIR)
     parser.add_argument("--dir", type=str, default='tennis')
     parser.add_argument("--source_shape", nargs ='+' ,type=int, default=(480,854))
     parser.add_argument("--channels", type=int, default=3)
@@ -111,7 +113,7 @@ def get_argparser():
     parser.add_argument('--no_trim_moments', dest='theta_embedding', action='store_false')
     parser.set_defaults(trim_moments=True)
     parser.add_argument("--trim_percentage", type=float, default=0.30)
-    parser.add_argument("--Results_dir", type=str, default='/vildata/guy/final_results')
+    parser.add_argument("--Results_dir", type=str, default=OUTPUT_DIR)
     parser.add_argument('--theta_embedding', dest='theta_embedding', action='store_true')
     parser.add_argument('--no_theta_embedding', dest='theta_embedding', action='store_false')
     parser.set_defaults(theta_embedding=False)
