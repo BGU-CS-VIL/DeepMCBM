@@ -7,20 +7,28 @@ DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera
 
 # Documentation:    
 ## Logger 
-Current version require a [Neptun.ai](https://neptune.ai/) account. After registration, open a new project. Now edit the constants for your project NEPTUNE_API_TOKEN and NEPTUNE_PROJECT in src/args.py file. All metrics, loss values, alignment and background estimation will be logged there to enable monitoring the training process and evaluating the results. 
+Current version require a [Neptun.ai](https://neptune.ai/) account. After registration, open a new project. Now edit the constants for your project NEPTUNE_API_TOKEN and NEPTUNE_PROJECT in src/args.py 
+file. All metrics, loss values, alignment and background estimation will be logged there to enable monitoring the training process and evaluating the results. 
+```
+NEPTUNE_API_TOKEN = Your_Neptune_API_TOKEN 
+NEPTUNE_PROJECT = Your_Neptune_Project 
+)
+```
 A local logging version is coming soon. 
 
 ## Environment
 The repository is equipped with a DeepMCBM_env.yml file.  
 Run conda env create -f DeepMCBM_env.yml from your terminal to set a conda environment using this file.     
 To ensure the environment is set properly, activate the new environment and run a "dry run" with few epochs:
+```
 conda activate DeepMCBM
 python src/DeepMCBM.py --DryRun
-
+```
 ## Train, Predict and Evaluate  
 To train, predict and evaluate a deepMCBM module on the default tennis sequence:
+```
 python src/DeepMCBM.py 
-
+```
 ## Input, Output and Checkpoints 
 The default values for the input, output, and checkpoints paths are set in src/args.py and can be changed to any path you wish. The requirement for the input directory is to have the following subdirectories: "frames" include the sequence frames, and if ground truth labels are available, a "GT" directory containing the ground truth frames. See the input/tennis for an example. The output directories are named by the sequence and Neptune.ai experiment: output/sequence_name/experiment_number in this directory you will find:
 - background_estimation directory containing the background estimation of the model.  
@@ -29,10 +37,13 @@ The default values for the input, output, and checkpoints paths are set in src/a
 
 ## Predict a Pretrained Model
 To only predict and evaluate metrics:
+```
 python src/DeepMCBM.py --no_train_BMN --no_train_STN 
-
+```
 You can change the loaded checkpoint: 
+```
 python src/DeepMCBM.py --no_train_BMN --no_train_STN --BMN_ckpt ckpt_file.ckpt  
+```
 Or by editing the MCBM_CKPT argument in src/args.py  
 
 Note: when using a pretrained model, the argument --pad, describing the size of the padding, must be the same as in the training phase.
