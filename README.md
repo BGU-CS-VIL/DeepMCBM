@@ -1,11 +1,43 @@
 # DeepMCBM
 
-Documentation: Coming soon
+**Authors:** Guy Erez, Ron Shapira Weber, and Oren Freifeld.
 
+This code repository corresponds to our ECCV '22 paper: **DeepMCBM: A Deep Moving-camera Background Model**.
+DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera background model, which is highly scalable and allows for relatively-free camera motion.
+
+## Documentation:    
+# Logger 
+Current version require a [Neptun.ai](https://neptune.ai/) account. After registration, open a new project. Now edit the constants for your project NEPTUNE_API_TOKEN and NEPTUNE_PROJECT in src/args.py file. All metrics, loss values, alignment and background estimation will be logged there to enable monitoring the training process and evaluating the results. 
+A local logging version is coming soon. 
+
+# Environment
+The repository is equipped with a DeepMCBM_env.yml file.  
+Run conda env create -f DeepMCBM_env.yml from your terminal to set a conda environment using this file.     
+To ensure the environment is set properly, activate the new environment and run a "dry run" with few epochs:
+conda activate DeepMCBM
+python src/DeepMCBM.py --DryRun
+
+# Train, Predict and Evaluate  
+To train, predict and evaluate a deepMCBM module run on the default tennis sequence:
+python src/DeepMCBM.py 
+
+# Input, Output and Checkpoints 
+The default values for the input, output, and checkpoints paths are set in src/args.py and can be changed to any path you wish. The requirement for the input directory is to have the following subdirectories: "frames" include the sequence frames, and if ground truth labels are available, a "GT" directory containing the ground truth frames. See the input/tennis for an example. The output directories are named by the sequence and Neptune.ai experiment: output/sequence_name/experiment_number in this directory you will find:
+- background_estimation directory containing the background estimation of the model.  
+- MSE directory containing the Mean Square Error (MSE) computed using the ground truth labels. 
+- panoramic_robust_mean.png image, shows the alignment result of the STN module. 
+
+# Predict a Pretrained Model
+To only predict and evaluate metrics:
+python src/DeepMCBM.py --no_train_BMN --no_train_STN 
+
+You can change the loaded checkpoint: 
+python src/DeepMCBM.py --no_train_BMN --no_train_STN --BMN_ckpt ckpt_file.ckpt  
+Or by editing the MCBM_CKPT argument in src/args.py  
+
+Note: when using a pretrained model, the argument --pad, describing the size of the padding, must be the same as in the training phase.
 
 Visual Comparisons: Coming soon
-
-
 
 ## DeepMCBM Examples
 https://user-images.githubusercontent.com/6692232/180310568-def4a578-091e-4a51-98c7-036e3f76f1cc.mp4
