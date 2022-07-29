@@ -40,7 +40,7 @@ To only predict and evaluate metrics:
 ```
 python src/DeepMCBM.py --no_train_BMN --no_train_STN 
 ```
-You can change the loaded checkpoint: 
+You can change the loaded checkpoint using a flag: 
 ```
 python src/DeepMCBM.py --no_train_BMN --no_train_STN --BMN_ckpt ckpt_file.ckpt  
 ```
