@@ -6,10 +6,11 @@ This code repository corresponds to our ECCV '22 paper: **DeepMCBM: A Deep Movin
 DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera background model, which is highly scalable and allows for relatively-free camera motion.
 
 ##### Table of Contents  
-[DeepMCBM Examples](#DeepMCBM Examples)  
+[DeepMCBM Examples]
 <a name="DeepMCBM Examples"/>
 
 ## DeepMCBM Examples
+
 https://user-images.githubusercontent.com/6692232/180310568-def4a578-091e-4a51-98c7-036e3f76f1cc.mp4
 
 https://user-images.githubusercontent.com/6692232/180310715-9ba0d7c1-7075-476f-98e9-a964b56beadf.mp4
