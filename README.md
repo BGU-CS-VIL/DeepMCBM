@@ -8,10 +8,10 @@ DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera
 ##### Table of Contents  
 1. [Results](#Results)
 2. [Documentation](#Documentation)
-  - [Environment](#Environment)
-  - [Train, Predict and Evaluate](#Train-Predict-and-Evaluate)
-  - [Input, Output and Checkpoints](#Input,-Output-and-Checkpoints)
-  - [Predict a Pretrained Model](#Predict-a-Pretrained-Model)
+  * [Environment](#Environment)
+  * [Train, Predict and Evaluate](#Train-Predict-and-Evaluate)
+  * [Input, Output and Checkpoints](#Input,-Output-and-Checkpoints)
+  * [Predict a Pretrained Model](#Predict-a-Pretrained-Model)
 3. [Visual Comparisons](#Visual-Comparisons)
 
 # Results
