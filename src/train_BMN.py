@@ -23,61 +23,29 @@ import STN_Homo
 
 
 
-def set_optimizer_and_scheduler(bmn,args,run):
+def set_optimizer_and_scheduler(bmn,args):
     optimizer = torch.optim.Adam(
     bmn.parameters(), lr=args.AE_lr, weight_decay=args.AE_weight_decay)
-    run['config/optimizer'] = type(optimizer).__name__
     if args.AE_schedul_type == 'step':
         scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, step_size=args.AE_schedul_step, gamma=args.AE_schedul_gamma)
     elif args.AE_schedul_type == 'Mstep':
         scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=args.AE_schedul_milestones, gamma=args.AE_schedul_gamma)
-    run['config/scheduler'] = type(scheduler).__name__
     return optimizer,scheduler
 
-def log(run,epoch,epoch_loss,lr,sample_image,bmn,log_interval):
-    run["training/CAE/loss"].log(epoch_loss)
-    run["training/CAE/epoch"].log(epoch)
-    run["training/CAE/lr"].log(lr)
+def log(epoch,epoch_loss,lr):
     print("epoch:",epoch)
     print("loss:",epoch_loss)
     print("lr :",lr)
-    if epoch%log_interval == 0:
-        log_frame_reconstruction(bmn,sample_image,epoch,run)
-
-def log_frame_reconstruction(bmn,image,epoch,run):
-    with torch.no_grad():
-        bmn.eval()
-        reconstruction, AE_output, warped_image, transform,warped_mean = bmn(image)
-        bmn.train()
-    utils.log_image(reconstruction, 
-                    f"epoch {epoch}",
-                    run, 
-                    f'training/CAE/reconstruction')
-    utils.log_image(AE_output, "epoch = " +
-                            str(epoch), run, 'training/CAE/AE_output')
-    utils.log_image(warped_mean, "epoch = " +
-                            str(epoch), run, 'training/CAE/STN_output')
-
+    
 def main(args,**kwargs):
     ## PARAMS and SETTINGS 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"using {device}")
-
-    ## LOGGER
-    if 'run' in kwargs.keys():
-        run = kwargs['run']
-    else:
-        # NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
-        run = neptune.init(project=args.neptune_project,
-                        api_token=args.neptune_api_token,
-                        source_files=['*.py'],
-                        tags=args.tags)
     
     # args = update_special_args(args, args.special_args_path)
-    run['config/params'] = vars(args)
-    ckpt_name = args.dir+"_"+ utils.fetch_Neptune_run_id(run)
+    ckpt_name = args.dir+"_"+ args.log_name
     ckpt_path = os.path.join(args.BMN_ckpt_dir,ckpt_name)
 
     ## DATA 
@@ -87,7 +55,6 @@ def main(args,**kwargs):
     ])
     root = os.path.join(args.parent_dir, args.dir, "frames")
     print(f"working on dataset in:{root}")
-    run['config/dataset/path'] = os.path.join(args.parent_dir, args.dir)
 
     train_loader = DataLoader(
         ImageDataset(root=root,
@@ -98,7 +65,6 @@ def main(args,**kwargs):
         drop_last=False)
 
     first_frame = train_loader.dataset.__getitem__(0)[None,:,:,:].to(device)
-    utils.log_image(first_frame, "first_frame", run, 'training/CAE/first_frame')
 
     ## MODEL
     # load STN
@@ -128,7 +94,7 @@ def main(args,**kwargs):
               cond_decoder=args.cond_decoder).to(device)
     # init BMN moments 
     bmn.init_moments(train_loader,args.trim_percentage)
-    utils.log_image(bmn.moments[0],"robust mean",run,"training/CAE/robust_mean")
+    # TODO : save robust mean 
 
     ## LOSS
     if args.AE_loss_type == 'MSE':
@@ -138,17 +104,14 @@ def main(args,**kwargs):
     elif args.AE_loss_type == 'GM':
         reconstruction_loss = GM(sigma=args.sigma)
 
-
     ## OPTIMIZER and SCHEDULER 
-    optimizer,scheduler = set_optimizer_and_scheduler(bmn,args,run)
+    optimizer,scheduler = set_optimizer_and_scheduler(bmn,args)
 
     ## TRAIN
     # init 
     size = len(train_loader.dataset)
-    first_frame = train_loader.dataset.__getitem__(0)[None,:,:,:].to(device)
     min_loss = float('inf')
     bmn.train()
-
     # training loop 
     for epoch in range(args.AE_total_epochs):
         running_loss = 0.0 
@@ -160,17 +123,15 @@ def main(args,**kwargs):
             loss.backward()
             optimizer.step()
             running_loss+=loss.item()
-        # End of epoch routine 
+        # end of epoch routine 
         epoch_loss = running_loss/size
-        log(run,epoch,epoch_loss,scheduler.get_last_lr(),first_frame,bmn,args.log_interval)
+        log(epoch,epoch_loss,scheduler.get_last_lr())
         scheduler.step()
         if epoch_loss < min_loss:
             min_loss = epoch_loss
             utils.save_model(ckpt_path+"_BMN_best.ckpt",bmn,optimizer,scheduler)
-
-    # End of training
+    # end of training
     utils.save_model(ckpt_path+"_BMN_last.ckpt",bmn,optimizer,scheduler)
-    # run.stop()
     return ckpt_name
 
 if __name__ == "__main__":

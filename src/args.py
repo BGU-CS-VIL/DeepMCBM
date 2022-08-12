@@ -1,10 +1,9 @@
 import argparse
-NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
-NEPTUNE_PROJECT = "vil/DeepMCBM"
+
 DATA_DIR = "./input"
 OUTPUT_DIR = "./output"
 CKPT_DIR = "./checkpoints"
-MCBM_CKPT = "tennis_BAC-850_last.ckpt"
+MCBM_CKPT = "tennis.ckpt"
 SEQUENCE = "tennis"
 
 
@@ -12,11 +11,9 @@ def get_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--DryRun', dest='DryRun', action='store_true')
     parser.set_defaults(DryRun=False)
-    # logging args 
-    parser.add_argument("--neptune_api_token", type = str, default=NEPTUNE_API_TOKEN)
-    parser.add_argument("--neptune_project", type = str ,default=NEPTUNE_PROJECT)
+    # logging args
+    parser.add_argument("--log_name", type = str ,default="my_run")
     parser.add_argument("--tags", nargs ='+' ,type=str, default=["debug"])
-    parser.add_argument("--log_interval", type=int, default=200)
     
     # dataset params
     parser.add_argument("--parent_dir", type=str, default=DATA_DIR)

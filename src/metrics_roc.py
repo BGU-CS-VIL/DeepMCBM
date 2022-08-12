@@ -76,20 +76,15 @@ def calc_roc(mse_dir, gt_dir, gt_shape, mse_shape,CDNet = False):
             gt_arr.append(gt)
         
     # scale across entire video - shape (N_frames, H, W)
-    print(len(mse_arr))
     mse_vid = np.concatenate(mse_arr, axis=0)
-    print("mse_vid.shape",mse_vid.shape)
     gt_vid = np.concatenate(gt_arr, axis=0)
-    print("mse vid min and max",np.min(mse_vid),np.max(mse_vid))
     mse_scaled = (mse_vid - np.min(mse_vid)) / (np.max(mse_vid)- np.min(mse_vid))
-    print("mse_scaled min and max",np.min(mse_scaled),np.max(mse_scaled))
-    print("mse_scaled.shape",mse_scaled.shape)
     
     # compute roc for batch
     mse_vec = mse_scaled.ravel()
     gt_vec = gt_vid.ravel()
     
-    debug = True
+    debug = False
     if debug: 
         print("mse_vec has nan:",np.any(np.isnan(mse_vec)))
         print("gt_vec has nan:",np.any(np.isnan(gt_vec)))
@@ -98,6 +93,5 @@ def calc_roc(mse_dir, gt_dir, gt_shape, mse_shape,CDNet = False):
         print("mse_vec max:",mse_vec.max())
 
     FPR, TPR, _ = roc_curve(gt_vec.astype(int), np.round_(mse_vec, 4), drop_intermediate=True) # drop_intermediate and round for mmeory issue 
-    print("len(FPR), len(TPR)", len(FPR), len(TPR))
     AUC = auc(FPR, TPR)
     return FPR, TPR, AUC

@@ -19,64 +19,32 @@ from metrics import calc_metric_and_MSE
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def predict_BMN(bmn,data_loader,exp_path,STN=False):
+def predict_BMN(bmn,data_loader,exp_path):
     # create output directories
     print("saving results to:", exp_path)
     bg_est_path = os.path.join(exp_path, "background_estimation")
     pathlib.Path(bg_est_path).mkdir(parents=True, exist_ok=True)
-    if STN :
-        bg_STN_est_path = os.path.join(exp_path, "STN_background_estimation")
-        pathlib.Path(bg_STN_est_path).mkdir(parents=True, exist_ok=True)
-
     utils.save_image(os.path.join(exp_path, "panoramic_robust_mean.png"), bmn.moments[0])
-    # utils.save_image(os.path.join(exp_path, "panoramic_var.png"), bmn.moments[1])
 
     i = 0
     bmn.eval()
     for images in tqdm(data_loader, desc="predict background",total=len(data_loader)):
         images = images.to(device, dtype=torch.float32)
-        background,STN_background = bmn.predict(images)
-        for bg,STN_bg in zip(background,STN_background):
+        background,_ = bmn.predict(images)
+        for bg in background:
             name = f"frame{i:06}.png"
             save_path = os.path.join(bg_est_path, name)
             utils.save_image(save_path, bg)
-            if STN :
-                save_path = os.path.join(bg_STN_est_path, name)
-                utils.save_image(save_path, STN_bg)
             i = i +1 
     print("----------------------background estimation done----------------------")
-    return bg_est_path,bg_STN_est_path
-
-def calc_metrics_BMN(metrics_path,mse_path,gt_path,args, tag="", run=None):
-    if os.path.exists(gt_path) and args.calc_metrics:
-        metrics_dict = metrics.scan_thresholds(min_t = args.fg_threshold_min, 
-                                max_t = args.fg_threshold_max, 
-                                step_t = args.fg_threshold_step, 
-                                file_path = metrics_path,
-                                mse_dir = mse_path,
-                                gt_dir = gt_path,
-                                gt_shape = args.source_shape, 
-                                mse_shape = args.mask_shape,
-                                CDNet=args.CDNet)
-        print("write metrics summary in:", metrics_path)
-    elif args.calc_metrics:
-        print("GT directory not found, skip metrics calculation")
-    else:
-        print("skip metrics calculation")
-    if run is not None:
-        run['metrics'] = metrics_dict
-        run['method'] = tag
-
+    return bg_est_path
 
 def main(args,**kwargs):
-
-    NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI1ODA1ODY0NS1iMTUwLTQzNjMtYTEwMi02NTU3ZmI5YzIwYzQifQ=="
-
-    ## PARAMS and SETTINGS 
+    ## Params and Settings 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"using {device}")
 
-    ## DATA 
+    ## Data
     train_transforms = transforms.Compose([
         transforms.Resize(size=args.mask_shape),
         transforms.ToTensor()])
@@ -89,14 +57,14 @@ def main(args,**kwargs):
         shuffle=False,
         num_workers=2,
         drop_last=False)
-
-    # MODEL 
+    
+    # Model 
     checkpoint_path = os.path.join(args.BMN_ckpt_dir, args.BMN_ckpt)
     checkpoint = torch.load(checkpoint_path)
     # STN
     if "STN.homography_theta_regressor.0.weight" in checkpoint['state_dict'].keys():
         args.homography = True
-        args.TP = "Homo"
+        args.TG = "Homo"
         stn = STN_Homo.STN_Homo(args.mask_shape, args.pad, args.t, pretrained=args.pretrain_resnet,
                     use_homography=args.homography).to(device) 
     else:                
@@ -116,61 +84,21 @@ def main(args,**kwargs):
     bmn.load_state_dict(checkpoint['state_dict'])
     print("BMN was loaded from: ", checkpoint_path)
     bmn.init_moments(predict_loader,args.trim_percentage)
-    # utils.save_image("robust_mean.png", bmn.moments[0])
 
-    exp = args.BMN_ckpt.split("_")[-2]
     dataset_results_dir = os.path.join(args.Results_dir,args.dir)
+    exp = args.log_name
     utils.safe_mkdir(dataset_results_dir)
     exp_path = os.path.join(dataset_results_dir, exp)
-    bg_est_path,bg_STN_est_path = predict_BMN(bmn,predict_loader,exp_path)
-    gt_path = os.path.join(args.parent_dir,args.dir,"GT")
-    
-    ## LOGGER
-    if 'run' in kwargs.keys():
-        run = kwargs['run']
-    else:
-        # NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJhOWQzYWJiNy0wNDk5LTQxZDctOTlmMi1kN2JmYjJmOWViZTEifQ=="
-        run = neptune.init(project=args.neptune_project,
-                        api_token=args.neptune_api_token,
-                        source_files=['*.py'],
-                        tags=args.tags)
-    
-    args.method = "AE"
-    run['config/params'] = vars(args)
-       
-    # like other methods
-    gt_path = os.path.join(args.parent_dir, args.dir, "GT")
+    bg_est_path = predict_BMN(bmn,predict_loader,exp_path)
+    gt_path = os.path.join(args.parent_dir,args.dir,"GT")    
     video_path = os.path.join(args.parent_dir, args.dir, "frames")
-    ckpt = args.BMN_ckpt.split("_")[1]
-    print("DEBUG checkpoint dir for BG and MSE", ckpt)
-    bg_path = bg_est_path
     mse_path = os.path.join(exp_path, "MSE")
     
-    calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
+    calc_metric_and_MSE(video_path=video_path, bg_path=bg_est_path,
                         gt_path=gt_path, mse_path=mse_path, args=args, method=args.method,
-                        run=run,  overwrite=True)
-    # run.stop()
-    
-    # ##### seperate runs for Neptune
-    # run2 = neptune.init(
-    #                     project=args.neptune_project,
-    #                     api_token=args.neptune_api_token,
-    #                     source_files=['*.py'],
-    #                     tags=args.tags)
-    # args.method = "STN"
-    # run2['config/params'] = vars(args)
-
-    # bg_path = bg_STN_est_path
-    # mse_path = os.path.join(exp_path, "MSE_STNv2")
-    # #calc_metrics_BMN(metrics_path, mse_STN_path, gt_path, args, tag="STN", run=run2)
-    # calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
-    #                     gt_path=gt_path, mse_path=mse_path, args=args, method=args.method,
-    #                     run=run2,  overwrite=True)
-    # run2.stop()
-
+                        overwrite=True)
 
 if __name__ == "__main__":
     parser = ARGS.get_argparser()
     args = parser.parse_args()
     main(args)
-    print("Done!")

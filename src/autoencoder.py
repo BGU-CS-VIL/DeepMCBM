@@ -49,8 +49,6 @@ class Encoder(nn.Module):
                                 nn.LeakyReLU(True),
                                 nn.Linear(code_size,math.prod(out_size)))
         self.unflatten = nn.Unflatten(dim=1,unflattened_size=out_size)
-        print("last layer in the encoder:", math.prod(out_size))
-
 
     def forward(self, x):
         x = self.enc(x)

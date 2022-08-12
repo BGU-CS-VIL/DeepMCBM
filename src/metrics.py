@@ -94,65 +94,6 @@ def calc_metrics(mse_dir, gt_dir, gt_shape, mse_shape, fg_threshold,CDNet = Fals
     return metrics
 
 
-
-def print_metrics_summary_to_file(metrics, fg_threshold, file):
-    """ write metrics to file """
-    utils.print_and_write_to_file(
-        "-------------------------------------------", file)
-    utils.print_and_write_to_file(f"threshold: {fg_threshold}", file)
-    for key in metrics.keys():
-        array = np.array(metrics[key])
-        # array = array[np.abs(array - np.mean(array)) <= np.std(array)]
-        utils.print_and_write_to_file(
-            f"{key}:{np.mean(array):.4f} ({np.std(array):.4f})", file)
-    utils.print_and_write_to_file(
-        "-------------------------------------------", file)
-
-
-def get_mean_metric(metrics, fg_threshold):
-    """return mean F measure, precision and recall for a given threshold"""
-    metrics_mean_dict = {}
-    metrics_std_dict = {}
-    metrics_dict = {}
-    for key in metrics.keys():
-        array = np.array(metrics[key])
-        # array = array[np.abs(array - np.mean(array)) <= np.std(array)]
-        metrics_mean_dict[key] = np.mean(array)
-        metrics_std_dict[key] = np.std(array)
-    metrics_dict['mean'] = metrics_mean_dict
-    metrics_dict['std'] = metrics_std_dict
-    return metrics_dict
-
-
-def scan_thresholds(min_t,
-                    max_t,
-                    step_t,
-                    file_path,
-                    mse_dir,
-                    gt_dir,
-                    gt_shape,
-                    mse_shape,
-                    CDNet=False):
-    """write to file F measure, precision and recall 
-    for a range of thresholds [min_t,max_t] with step size step_t"""
-    metrics_dict = {}
-    # with open(file_path, "a+") as file:
-    print("-------------CDNET for scan threshold is:", CDNet)
-    for t in tqdm(np.arange(min_t, max_t, step=step_t), desc="scan thresholds"):
-        metrics = calc_metrics(mse_dir=mse_dir,
-                                gt_dir=gt_dir,
-                                gt_shape=gt_shape,
-                                mse_shape=mse_shape,
-                                fg_threshold=t,
-                                CDNet=CDNet)
-
-        # print_metrics_summary_to_file(metrics, t, file)
-        metrics_dict[t] = get_mean_metric(metrics, t)
-        
-
-    return metrics_dict
-
-
 def generate_mse(video_path, bg_path, MSE_dir):
     # get list of file names, sorted
     frames_list = image_list(video_path)
@@ -165,9 +106,7 @@ def generate_mse(video_path, bg_path, MSE_dir):
     # sort frames by name ["frame_1.png", "frame_2.png", ...]
     bg_list = natsorted(bg_list)
     frames_list = natsorted(frames_list)
-    #print("deubg: both sorted lists", bg_list, frames_list)
-    print("saving mse to:", MSE_dir)
-
+    
     mse_list = []
     for i, (bg, frame) in enumerate(zip(bg_list, frames_list)):
         frame_name = f"frame{i:06}.png"
@@ -179,18 +118,13 @@ def generate_mse(video_path, bg_path, MSE_dir):
         frame = frame.convert(mode)
         bg = ToTensor()(bg)
         frame = ToTensor()(frame)
-        #print("###### DEBUG bg shape", bg.shape)
         resize_to_bg = Resize((bg.shape[1], bg.shape[2]))
         frame = resize_to_bg(frame)
-        # print("frame shape", frame.shape)
-        # print("bg shape", bg.shape)
         frame_mse = torch.mean((frame - bg) ** 2, dim=0)
-        if i == 0:
-            print("debug: frame_mse.shape", frame_mse.shape)
         mse_list.append(frame_mse)
         utils.save_image(frame_path, frame_mse)
 
-def calc_metric_and_MSE(video_path, bg_path, gt_path, mse_path, run, args, method="", overwrite=True):
+def calc_metric_and_MSE(video_path, bg_path, gt_path, mse_path, args, method="", overwrite=True):
     """
     Calculates F1, precision and recall measure per-frame (mean/std)
      and entire video (mean/std). 
@@ -210,52 +144,14 @@ def calc_metric_and_MSE(video_path, bg_path, gt_path, mse_path, run, args, metho
     # check if MSE dir exist
     # if not,  generate MSE between background and frame and save
     # mignt need to resize frame to background``
-    debug = True
-    if debug:
-        print("debug - all paths:")
-        print("video_path:", video_path)
-        print("bg_path:", bg_path)
-        print("gt_path:", gt_path)
-        print("mse_path:", mse_path)
     # if exist we can continue, otherwise we'll calc MSE and save at dir
-    print("##### Compte MSE ######")
     generate_mse(video_path, bg_path, mse_path)
-    
-    # comapre MSE with GT - resize according to GT
-    # metrics_dict = scan_thresholds(min_t=args.fg_threshold_min,
-    #                                max_t=args.fg_threshold_max,
-    #                                step_t=args.fg_threshold_step,
-    #                                file_path=None,
-    #                                mse_dir=mse_path,
-    #                                gt_dir=gt_path,
-    #                                gt_shape=args.source_shape,
-    #                                mse_shape=args.mask_shape,
-    #                                CDNet=args.CDNet)
-
     FPR, TPR, AUC = calc_roc(mse_dir=mse_path, gt_dir=gt_path, gt_shape=args.source_shape,
                         mse_shape=args.mask_shape,CDNet=args.CDNet)
 
-    if run is not None:
-        FPR = FPR.tolist()
-        TPR =  TPR.tolist()
-        print("TPR len:", len(TPR))
-        run["AUC"] = AUC
-        [run["metrics/FPR"].log(x) for x in FPR]
-        [run["metrics/TPR"].log(x) for x in TPR]
-
+    FPR = FPR.tolist()
+    TPR =  TPR.tolist()
+    print("TPR len:", len(TPR))
+    print("FPR len:", len(FPR))
+    print("AUC score:", AUC)
     return FPR, TPR
-    # if run is not None:
-    #     run[f'metrics'] = metrics_dict
-    #     mean_dict = {}
-    #     std_dict = {}
-    #     # keys are threhsold, values are dicts with mean and std
-    #     # metrics_dict[t]["mean"] = {"F_measure": float, "TPR": float ...}
-    #     for t in metrics_dict.keys():
-    #         mean_dict[t] = metrics_dict[t]["mean"]
-    #         std_dict[t] = metrics_dict[t]["std"]
-            
-
-    #     df_mean = pd.DataFrame(mean_dict).T
-    #     df_std = pd.DataFrame(std_dict).T
-    #     run['metrics_mean_df'].upload(File.as_html(df_mean))
-    #     run['metrics_std_df'].upload(File.as_html(df_std))

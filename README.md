@@ -20,20 +20,7 @@ https://user-images.githubusercontent.com/6692232/180310734-79522a80-47ab-4391-8
 
 https://user-images.githubusercontent.com/6692232/180310703-9390b353-37eb-41ca-802f-7ba4ffa42abd.mp4
 
-
-
-
-
 # Documentation:    
-## Logger 
-Current version require a [Neptun.ai](https://neptune.ai/) account. After registration, open a new project. Now edit the constants for your project NEPTUNE_API_TOKEN and NEPTUNE_PROJECT in src/args.py 
-file. All metrics, loss values, alignment and background estimation will be logged there to enable monitoring the training process and evaluating the results. 
-```
-NEPTUNE_API_TOKEN = Your_Neptune_API_TOKEN 
-NEPTUNE_PROJECT = Your_Neptune_Project 
-)
-```
-A local logging version is coming soon. 
 
 ## Environment
 The repository is equipped with a DeepMCBM_env.yml file.  
