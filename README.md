@@ -5,6 +5,13 @@
 This code repository corresponds to our ECCV '22 paper: **DeepMCBM: A Deep Moving-camera Background Model**.
 DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera background model, which is highly scalable and allows for relatively-free camera motion.
 
+##### Table of Contents  
+[Headers](#headers)  
+[Emphasis](#emphasis)  
+...snip...    
+<a name="headers"/>
+## Headers
+
 ## DeepMCBM Examples
 https://user-images.githubusercontent.com/6692232/180310568-def4a578-091e-4a51-98c7-036e3f76f1cc.mp4
 
@@ -54,5 +61,7 @@ Or by editing the MCBM_CKPT argument in src/args.py
 
 Note: when using a pretrained model, the argument --pad, describing the size of the padding, must be the same as in the training phase.
 
-Visual Comparisons: Coming soon
+# Visual Comparisons : 
+[tennis.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315725/tennis.pdf)
+
 
