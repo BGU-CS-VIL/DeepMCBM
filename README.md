@@ -8,6 +8,8 @@ DeepMCBM is a novel 2D-based method for unsupervised learning of a moving-camera
 ##### Table of Contents  
 1. [Results](#Results)
 2. [Documentation](#Documentation)  
+  2.1 [Environment](#Environment)
+  2.2 
 
 
 # Results
@@ -60,7 +62,10 @@ Or by editing the MCBM_CKPT argument in src/args.py
 
 Note: when using a pretrained model, the argument --pad, describing the size of the padding, must be the same as in the training phase.
 
-# Visual Comparisons : 
+# Visual Comparisons 
+
 [tennis.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315725/tennis.pdf)
-
-
+[flamingo.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315795/flamingo.pdf)
+[dog-gooses.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315794/dog-gooses.pdf)
+[bmx-trees.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315796/bmx-trees.pdf)
+[horsejump-high.pdf](https://github.com/BGU-CS-VIL/DeepMCBM/files/9315798/horsejump-high.pdf)
