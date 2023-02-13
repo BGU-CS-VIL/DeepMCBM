@@ -9,7 +9,6 @@ from torchvision.transforms import ToTensor
 import utils
 from utils import calc_F_measure, calc_TPR_FPR
 from pathlib import Path
-from neptune.new.types import File
 import pandas as pd
 from natsort import natsorted
 
