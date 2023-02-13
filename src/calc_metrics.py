@@ -14,15 +14,6 @@ def main(args):
     # outputs_dir: vildata/guy/competitors_Results/*args.dir*/*args.method*
     for instance: /vildata/guy/competitors_Results/tennis/JA-POLS
     """
-    NEPTUNE_API_TOKEN = "eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI1ODA1ODY0NS1iMTUwLTQzNjMtYTEwMi02NTU3ZmI5YzIwYzQifQ=="
-    run = neptune.init(
-        project="vil/BMN-metrics",
-        api_token=NEPTUNE_API_TOKEN,
-        source_files=['*.py'],
-        tags=args.tags)
-
-    # args = update_special_args(args, args.special_args_path)
-    run['config/params'] = vars(args)
 
     gt_path = os.path.join(args.parent_dir, args.dir, "GT")
     video_path = os.path.join(args.parent_dir, args.dir, "frames")
@@ -30,9 +21,8 @@ def main(args):
     mse_path = os.path.join(args.outputs_dir, args.dir, args.method, "MSE")
 
     calc_metric_and_MSE(video_path=video_path, bg_path=bg_path,
-                        gt_path=gt_path, mse_path=mse_path, args=args, method=args.method, run=run)
+                        gt_path=gt_path, mse_path=mse_path, args=args, method=args.method)
     
-    run.stop()
 
 
 if __name__ == "__main__":
