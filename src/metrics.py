@@ -2,7 +2,6 @@
 # input:  background estimation directoty
 #         input image directory
 #         ground truth directory
-#         log file
 # output: foreground estimation directory
 #         write metrics and arguments to log file
 ####
@@ -17,7 +16,6 @@ import utils
 import numpy as np
 from utils import calc_F_measure, calc_TPR_FPR
 from pathlib import Path
-from neptune.new.types import File
 import pandas as pd
 from metrics_roc import calc_roc
 from natsort import natsorted
