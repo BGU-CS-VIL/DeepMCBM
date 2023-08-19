@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 import utils 
 import matplotlib.pyplot as plt
+
 class Alignment_Loss(nn.Module):
+    
     def __init__(self,input_shape,memory=0.0, SmoothL1Loss_beta=0.35,zero_sensitivity=1e-10):
         super(Alignment_Loss, self).__init__()
         self.memory = memory 

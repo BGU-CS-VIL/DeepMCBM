@@ -20,13 +20,15 @@ def get_argparser():
     parser.add_argument("--dir", type=str, default=SEQUENCE)
     parser.add_argument("--source_shape", nargs ='+' ,type=int, default=(480,854))
     parser.add_argument("--channels", type=int, default=3)
-    parser.add_argument('--outputs_dir', type=str, default='/vildata/guy/competitors_Results/')
-    parser.add_argument('--method', type=str, default='MCBM')
     
-    parser.add_argument('--CDNet', dest='CDNet', action='store_true')
+    # metrics logging params 
+    parser.add_argument('--outputs_dir', type=str, default='')
+    parser.add_argument('--method', type=str, default='DeepMCBM')
+    
+    # to evaluate on CDNet dataset using its GT labels 
+    parser.add_argument('--CDNet', dest='CDNet', action='store_true') 
     parser.set_defaults(CDNet=False)
 
-    
     # panorama params
     parser.add_argument("--pad", nargs ='+' ,type=int, default=(700,700))
     parser.add_argument("--t", nargs ='+' ,type=float, default=(-0.5,-0.5))
