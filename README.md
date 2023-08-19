@@ -34,14 +34,14 @@ To train, predict and evaluate a deepMCBM module on the default tennis sequence:
 python src/DeepMCBM.py 
 ```
 ## Input, Output and Checkpoints 
-The default values for the input, output, and checkpoints paths are set in ```src/args.py``` and can be changed to any path you wish. The requirement for the input directory is to have the following subdirectories: "frames" include the sequence frames, and if ground truth labels are available, a "GT" directory containing the ground truth frames. See the input/tennis for an example. The output directories are named by the sequence and the log_name argument: output/sequence_name/log_name in this directory you will find:
+The default values for the input, output, and checkpoints paths are set in ```src/args.py``` and can be changed to any path you wish. The requirement for the input directory is to have the following subdirectories: "frames" include the sequence frames, and if ground truth labels are available, a "GT" directory containing the ground truth frames. See the input/tennis for an example. The output directories are named by the sequence and the ```log_name``` argument: ```output/sequence_name/log_name``` in this directory you will find:
 - background_estimation directory containing the background estimation of the model.  
 - MSE directory containing the Mean Square Error (MSE) computed using the ground truth labels. 
 - panoramic_robust_mean.png image, shows the alignment result of the STN module.
 
 You can change the log_name simply by adding ```log_name "my_new_name"``` to your command line.   
 
-## Predict a Pretrained Model
+## Predict Using a Pretrained Model
 To only predict and evaluate metrics:
 ```
 python src/DeepMCBM.py --no_train_BMN --no_train_STN 
